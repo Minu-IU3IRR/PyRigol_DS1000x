@@ -454,11 +454,14 @@ class PyRigol_DS1000x:
                     f'average outside valid range 2^n for n in 1-10, given: {n}')
 
     def acquire_memory_depth(self, depth:int = None):
-        """Set or query the memory depth of the oscilloscope (namely the number of waveform points that can be stored in a single trigger sample). The default unit is pts (points)."""
+        """Set or query the memory depth of the oscilloscope (namely the number of waveform points that can be stored in a single trigger sample). The default unit is pts (points) or 'AUTO'."""
         cmd = ':ACQuire:MDEPth'
         if depth is None:
             cmd += '?'
-            val = float(self.query(cmd))
+            try:
+                val = float(self.query(cmd))
+            except ValueError:
+                val = -1
             self.memory_depth = val
         else:
             pass  # todo

@@ -4,3 +4,4 @@
 /.gitignore
 /setup.py
 /workspace.code-workspace
+/tests.py
