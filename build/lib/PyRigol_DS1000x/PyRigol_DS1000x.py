@@ -73,11 +73,9 @@ class Channel:
         self.name = name
         self.number = int(self.name[-1])
 
-        self._valid_bandwith_limit = ['OFF', '20M']
         self._bandwith_limit = self.bandwith_limit()
 
-        self._valid_attenuation = ['0.01', '0.02', '0.05', '0.1', '0.2',
-                                   '0.5', '1', '2', '5', '10', '20', '50', ' 100', '200', '500', '1000']
+        self._valid_attenuation = (0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000)
         self._probe_ratio = self.probe_ratio()
         self._scale = self.scale()
 
@@ -90,6 +88,7 @@ class Channel:
         self._voltage_range = self.range()
 
     def _set_get(self, cmd: str, valid: list, mode: str = None):
+        """set or get value, cmd = command structure toa ppend '?' in case mode is None or value if value is in valid or valid is None"""
         cmd = cmd.format(self.number)
         if mode is None:
             cmd += '?'
@@ -103,22 +102,26 @@ class Channel:
                 self.scope.write(cmd)
                 return mode
 
-    def bandwith_limit(self, mode: str = None):
-        self._bandwith_limit = self._set_get(':CHANnel{}:BWLimit',
-                                             self._valid_bandwith_limit, mode)
+    def bandwith_limit(self, mode: bool = None):
+        cmd = None
+        if mode is not None:
+            cmd = 'OFF'
+            if mode:
+                cmd = '20M'
+        self._bandwith_limit = self._set_get(f':CHANnel{self.number}:BWLimit', None, cmd)
         return self._bandwith_limit
 
     def coupling(self, mode: str = None):
         self._coupling = self._set_get(
-            ':CHANnel{}:COUPling', self._valid_coupling, mode)
+            f':CHANnel{self.number}:COUPling', self._valid_coupling, mode)
         return self._coupling
 
     def display(self, mode: bool = None):
-        self._display = self._set_get(':CHANnel{}:DISPlay', None, mode)
+        self._display = self._set_get(f':CHANnel{self.number}:DISPlay', None, mode)
         return self._display
 
     def invert(self, mode: bool = None):
-        self._invert = self._set_get(':CHANnel{}:INVert', None, mode)
+        self._invert = self._set_get(f':CHANnel{self.number}:INVert', None, mode)
         return self._invert
 
     def offset(self, val: float = None):
@@ -142,7 +145,7 @@ class Channel:
             data_valid = True
 
         if data_valid:
-            self._offset = self._set_get(':CHANnel{}:OFFSet', None, val)
+            self._offset = self._set_get(f':CHANnel{self.number}:OFFSet', None, val)
             return self._offset
         else:
             raise Exception('value out of range')
@@ -152,19 +155,19 @@ class Channel:
             if isclose(self._probe_ratio, 1.0) and not 0.008 <= val <= 80.0 or \
                     isclose(self._probe_ratio, 10.0) and not 0.08 <= val <= 800.0:
                 raise Exception('value out of range')
-        self._voltage_range = self._set_get(':CHANnel{}:RANGe', None, val)
+        self._voltage_range = self._set_get(f':CHANnel{self.number}:RANGe', None, val)
         return self._voltage_range
 
     def cal_timebase_delay(self, val: float = None):
-        return self._set_get(':CHANnel{}:RANGe', None, val)
+        return self._set_get(f':CHANnel{self.number}:RANGe', None, val)
 
     def scale(self, val: float = None):
-        self._scale = self._set_get(':CHANnel{}:SCALe', None, val)
+        self._scale = self._set_get(f':CHANnel{self.number}:SCALe', None, val)
         return self._scale
 
     def probe_ratio(self, val: float = None):
         if val is None or True in [isclose(i, val) for i in self._valid_attenuation]:
-            self._probe_ratio = self._set_get(':CHANnel{}:PROBe', None, val)
+            self._probe_ratio = self._set_get(f':CHANnel{self.number}:PROBe', None, val)
             return self._probe_ratio
         else:
             raise Exception('invalid value')
